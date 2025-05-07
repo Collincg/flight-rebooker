@@ -4,7 +4,7 @@
 
 // Load Express app config from app.js (dumb translation: import all routing logic)
 const app = require('./app');
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8000;
 
 // Start the server and listen on the specified port
 // (dumb translation: start the server and listen for incoming requests)
