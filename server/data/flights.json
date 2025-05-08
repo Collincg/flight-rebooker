@@ -28,6 +28,66 @@
       "arrivalTime": "2025-05-07T13:50:00",
       "layovers": 2,
       "status": "delayed"
+    },
+    {
+      "id": "SW101",
+      "airline": "Southwest",
+      "origin": "LAX",
+      "destination": "DEN",
+      "departureTime": "2025-05-08T14:00:00",
+      "arrivalTime": "2025-05-08T17:30:00",
+      "layovers": 0,
+      "status": "on time"
+    },
+    {
+      "id": "BA202",
+      "airline": "British Airways",
+      "origin": "LHR",
+      "destination": "JFK",
+      "departureTime": "2025-05-09T10:15:00",
+      "arrivalTime": "2025-05-09T13:45:00",
+      "layovers": 0,
+      "status": "canceled"
+    },
+    {
+      "id": "AF303",
+      "airline": "Air France",
+      "origin": "CDG",
+      "destination": "LAX",
+      "departureTime": "2025-05-10T07:00:00",
+      "arrivalTime": "2025-05-10T11:30:00",
+      "layovers": 1,
+      "status": "delayed"
+    },
+    {
+      "id": "LH404",
+      "airline": "Lufthansa",
+      "origin": "FRA",
+      "destination": "ORD",
+      "departureTime": "2025-05-11T12:00:00",
+      "arrivalTime": "2025-05-11T16:30:00",
+      "layovers": 0,
+      "status": "on time"
+    },
+    {
+      "id": "QF505",
+      "airline": "Qantas",
+      "origin": "SYD",
+      "destination": "LAX",
+      "departureTime": "2025-05-12T22:00:00",
+      "arrivalTime": "2025-05-12T15:00:00",
+      "layovers": 1,
+      "status": "canceled"
+    },
+    {
+      "id": "EK606",
+      "airline": "Emirates",
+      "origin": "DXB",
+      "destination": "JFK",
+      "departureTime": "2025-05-13T03:00:00",
+      "arrivalTime": "2025-05-13T09:00:00",
+      "layovers": 0,
+      "status": "on time"
     }
   ]
   
