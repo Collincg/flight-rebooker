@@ -15,7 +15,7 @@ const req = require('express/lib/request');
 // Hard Code a simulated user with a booked filght
 let userFlight = {
   userId: 'user123',
-  bookedFlightId: 'AA123', // hardcoded for now
+  bookedFlightId: "AA123", // hardcoded for now
 };
 
 // Define a route to get all flights
@@ -47,12 +47,12 @@ router.get('/user-flight/status', (req, res) => {
   }
 
   // Check the status of the booked flight
-  if (bookedFlight.status === 'on time') {
+  if (bookedFlight.status === "on time") {
     return res.json({ message: 'Your flight is on time', bookedFlight });
-  } else if (bookedFlight.status === 'delayed') {
+  } else if (bookedFlight.status === "delayed") {
     return res.json({ message: 'Your flight is delayed', bookedFlight });
-  } else if (bookedFlight.status === 'cancelled') {
-    return res.json({ message: 'Your flight is cancelled', bookedFlight });
+  } else if (bookedFlight.status === "canceled") {
+    return res.json({ message: 'Your flight is canceled', bookedFlight });
   }
 
   // Default response if status is unknown
@@ -99,7 +99,7 @@ router.get('/filter', (req, res) => {
 
 // Route to get rebooking options for the user's booked flight
 // This route handles GET requests to /api/flights/rebooking-options
-router.get('/rebooking-options', (req, res) => {
+router.get('/user-flight/rebooking-options', (req, res) => {
   const bookedFlight = flights.find(flight => flight.id === userFlight.bookedFlightId);
 
   if (!bookedFlight) {
@@ -121,7 +121,7 @@ router.get('/rebooking-options', (req, res) => {
       flight.origin === bookedFlight.origin && 
       flight.destination === bookedFlight.destination &&
       timeDifference <= 24 && // Check if within 24 hours
-      flight.status !== 'cancelled' // Exclude cancelled flights
+      flight.status !== 'canceled' // Exclude canceled flights
     );
   });
 
@@ -134,7 +134,7 @@ router.get('/rebooking-options', (req, res) => {
 
 
 // Route to rebook the user's flight
-router.post('/rebook', (req, res) => {
+router.post('/user-flight/rebook', (req, res) => {
   const { newFlightId } = req.body; // Extract new flight ID from the request body
 
   const newFlight = flights.find(flight => flight.id === newFlightId); // Find the new flight by ID
@@ -149,8 +149,8 @@ router.post('/rebook', (req, res) => {
     return res.status(400).json({ error: 'New flight must have the same origin and destination' });
   }
 
-  if (newFlight.status === 'cancelled') {
-    return res.status(400).json({ error: 'New flight is cancelled. Cannot rebook' });
+  if (newFlight.status === 'canceled') {
+    return res.status(400).json({ error: 'New flight is canceled. Cannot rebook' });
   }
 
   // Update the user's booked flight to the new flight ID
