@@ -106,9 +106,9 @@ router.get('/rebooking-options', (req, res) => {
     return res.status(404).json({ error: 'No booked flight found for the user' });
   }
 
-  if (bookedFlight.status !== 'delayed' && bookedFlight.status !== 'canceled') {
-    return res.status(400).json({ error: 'Flight is not delayed or caneled. No rebooking options needed' });
-  }
+  // if (bookedFlight.status !== 'delayed' && bookedFlight.status !== 'canceled') {
+  //   return res.status(400).json({ error: 'Flight is not delayed or caneled. No rebooking options needed' });
+  // }
 
   // Suggest flights with the same origin and destination, within 24 hours of departure time
   const departureTime = new Date(bookedFlight.departureTime); // Convert departure time to a Date object
