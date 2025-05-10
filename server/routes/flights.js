@@ -24,6 +24,7 @@ router.get('/', (req, res) => {
   res.json(flights);
 });
 
+
 // Route to get the user's current booked flight
 // This route handles GET requests to /api/flights/user-flight
 router.get('/user-flight', (req, res) => {
@@ -35,6 +36,7 @@ router.get('/user-flight', (req, res) => {
 
   res.json({ userId: userFlight.userId, bookedFlight }); // Return the user's booked flight as JSON response
 })
+
 
 // Route to monitor the status of the user's booked flight
 router.get('/user-flight/status', (req, res) => {
@@ -56,6 +58,7 @@ router.get('/user-flight/status', (req, res) => {
   // Default response if status is unknown
   res.json({ message: 'Flight status is unknown', bookedFlight });
 });
+
 
 // Define a route to filter flights by destination, date, or airline
 // This route handles GET requests to /api/flights/filter
@@ -93,6 +96,7 @@ router.get('/filter', (req, res) => {
   res.json(filteredFlights);
 })
 
+
 // Route to get rebooking options for the user's booked flight
 // This route handles GET requests to /api/flights/rebooking-options
 router.get('/rebooking-options', (req, res) => {
@@ -128,6 +132,7 @@ router.get('/rebooking-options', (req, res) => {
   res.json(rebookingOptions); // Return the rebooking options as JSON response
 });
 
+
 // Route to rebook the user's flight
 router.post('/rebook', (req, res) => {
   const { newFlightId } = req.body; // Extract new flight ID from the request body
@@ -154,6 +159,7 @@ router.post('/rebook', (req, res) => {
   res.json({ message: 'Flight rebooked successfully', newFlight }); // Return success message and the new flight as JSON response
 });
 
+
 // Define a route to rebook a flight
 // This route handles PUT requests to /api/flights/rebook/:id and allows updating the status of a specific flight.
 // The :id in the route allows the client to specify which flight to update (e.g., /api/flights/rebook/AA123).
@@ -176,6 +182,7 @@ router.put('/rebook/:id', (req, res) => {
   // Return success message and the updated flight as JSON response
   res.json({ message: 'Flight rebooked successfully', flight }); 
 });
+
 
 // export the router so it can be used in other files (like app.js)
 module.exports = router;
