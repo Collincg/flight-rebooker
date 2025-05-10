@@ -11,10 +11,50 @@ const router = express.Router(); //creates a modular router object to define rou
 const flights = require('../data/flights.json'); // Load flight data from a JSON file. This file contains an array of flight objects with various properties.
 const req = require('express/lib/request');
 
+
+// Hard Code a simulated user with a booked filght
+let userFlight = {
+  userId: 'user123',
+  bookedFlightId: 'AA123', // hardcoded for now
+};
+
 // Define a route to get all flights
 // This route handles GET requests to the root URL of the flights API (e.g., /api/flights)
 router.get('/', (req, res) => {
   res.json(flights);
+});
+
+// Route to get the user's current booked flight
+// This route handles GET requests to /api/flights/user-flight
+router.get('/user-flight', (req, res) => {
+  const bookedFlight = flights.find(flight => flight.id === userFlight.bookedFlightId); 
+
+  if (!bookedFlight) {
+    return res.status(404).json({ error: 'No booked flight found for the user' }); 
+  }
+
+  res.json({ userId: userFlight.userId, bookedFlight }); // Return the user's booked flight as JSON response
+})
+
+// Route to monitor the status of the user's booked flight
+router.get('/user-flight/status', (req, res) => {
+  const bookedFlight = flights.find(flight => flight.id === userFlight.bookedFlightId);
+
+  if (!bookedFlight) {
+    return res.status(404).json({ error: 'No booked flight found for the user' });
+  }
+
+  // Check the status of the booked flight
+  if (bookedFlight.status === 'on time') {
+    return res.json({ message: 'Your flight is on time', bookedFlight });
+  } else if (bookedFlight.status === 'delayed') {
+    return res.json({ message: 'Your flight is delayed', bookedFlight });
+  } else if (bookedFlight.status === 'cancelled') {
+    return res.json({ message: 'Your flight is cancelled', bookedFlight });
+  }
+
+  // Default response if status is unknown
+  res.json({ message: 'Flight status is unknown', bookedFlight });
 });
 
 // Define a route to filter flights by destination, date, or airline
@@ -52,6 +92,67 @@ router.get('/filter', (req, res) => {
 
   res.json(filteredFlights);
 })
+
+// Route to get rebooking options for the user's booked flight
+// This route handles GET requests to /api/flights/rebooking-options
+router.get('/rebooking-options', (req, res) => {
+  const bookedFlight = flights.find(flight => flight.id === userFlight.bookedFlightId);
+
+  if (!bookedFlight) {
+    return res.status(404).json({ error: 'No booked flight found for the user' });
+  }
+
+  if (bookedFlight.status !== 'delayed' && bookedFlight.status !== 'canceled') {
+    return res.status(400).json({ error: 'Flight is not delayed or caneled. No rebooking options needed' });
+  }
+
+  // Suggest flights with the same origin and destination, within 24 hours of departure time
+  const departureTime = new Date(bookedFlight.departureTime); // Convert departure time to a Date object
+  const rebookingOptions = flights.filter(flight => {
+    const flightDepartureTime = new Date(flight.departureTime); // Convert flight departure time to a Date object
+    const timeDifference = Math.abs(flightDepartureTime - departureTime) / (1000 * 60 * 60); // Calculate time difference in hours
+
+    return (
+      flight.id !== bookedFlight.id && // Exclude the booked flight itself
+      flight.origin === bookedFlight.origin && 
+      flight.destination === bookedFlight.destination &&
+      timeDifference <= 24 && // Check if within 24 hours
+      flight.status !== 'cancelled' // Exclude cancelled flights
+    );
+  });
+
+  if (rebookingOptions.length === 0) {
+    return res.status(404).json({ error: 'No rebooking options available' });
+  }
+
+  res.json(rebookingOptions); // Return the rebooking options as JSON response
+});
+
+// Route to rebook the user's flight
+router.post('/rebook', (req, res) => {
+  const { newFlightId } = req.body; // Extract new flight ID from the request body
+
+  const newFlight = flights.find(flight => flight.id === newFlightId); // Find the new flight by ID
+  if (!newFlight) {
+    return res.status(404).json({ error: 'New flight not found' });
+  }
+
+  if (
+    newFlight.origin !== flights.find(flight => flight.id === userFlight.bookedFlightId).origin ||
+    newFlight.destination !== flights.find(flight => flight.id === userFlight.bookedFlightId).destination
+  ){
+    return res.status(400).json({ error: 'New flight must have the same origin and destination' });
+  }
+
+  if (newFlight.status === 'cancelled') {
+    return res.status(400).json({ error: 'New flight is cancelled. Cannot rebook' });
+  }
+
+  // Update the user's booked flight to the new flight ID
+  userFlight.bookedFlightId = newFlightId;
+
+  res.json({ message: 'Flight rebooked successfully', newFlight }); // Return success message and the new flight as JSON response
+});
 
 // Define a route to rebook a flight
 // This route handles PUT requests to /api/flights/rebook/:id and allows updating the status of a specific flight.

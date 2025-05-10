@@ -7,7 +7,7 @@
     "departureTime": "2025-05-07T08:30:00",
     "arrivalTime": "2025-05-07T11:45:00",
     "layovers": 0,
-    "status": "delayed",
+    "status": "canceled",
     "prices": { "economy": 250, "business": 600, "first": 1200 },
     "seatsAvailable": { "economy": 5, "business": 2, "first": 1 }
   },
@@ -30,10 +30,46 @@
     "destination": "LAX",
     "departureTime": "2025-05-07T13:15:00",
     "arrivalTime": "2025-05-07T19:35:00",
-    "layovers": 1,
+    "layovers": 0,
     "status": "on time",
     "prices": { "economy": 220, "business": 500, "first": 1000 },
     "seatsAvailable": { "economy": 5, "business": 1, "first": 2 }
+  },
+  {
+    "id": "AA125",
+    "airline": "American Airlines",
+    "origin": "JFK",
+    "destination": "LAX",
+    "departureTime": "2025-05-07T10:00:00",
+    "arrivalTime": "2025-05-07T13:30:00",
+    "layovers": 1,
+    "status": "delayed",
+    "prices": { "economy": 240, "business": 580, "first": 1100 },
+    "seatsAvailable": { "economy": 4, "business": 2, "first": 1 }
+  },
+  {
+    "id": "DL458",
+    "airline": "Delta",
+    "origin": "JFK",
+    "destination": "LAX",
+    "departureTime": "2025-05-07T12:00:00",
+    "arrivalTime": "2025-05-07T15:45:00",
+    "layovers": 0,
+    "status": "on time",
+    "prices": { "economy": 260, "business": 600, "first": 1200 },
+    "seatsAvailable": { "economy": 6, "business": 3, "first": 2 }
+  },
+  {
+    "id": "UA791",
+    "airline": "United",
+    "origin": "JFK",
+    "destination": "LAX",
+    "departureTime": "2025-05-07T16:00:00",
+    "arrivalTime": "2025-05-07T19:30:00",
+    "layovers": 1,
+    "status": "delayed",
+    "prices": { "economy": 250, "business": 570, "first": 1150 },
+    "seatsAvailable": { "economy": 5, "business": 2, "first": 1 }
   },
   {
     "id": "DL456",
@@ -130,65 +166,5 @@
     "status": "on time",
     "prices": { "economy": 520, "business": 1150, "first": 2000 },
     "seatsAvailable": { "economy": 5, "business": 2, "first": 1 }
-  },
-  {
-    "id": "AF303",
-    "airline": "Air France",
-    "origin": "CDG",
-    "destination": "LAX",
-    "departureTime": "2025-05-10T07:00:00",
-    "arrivalTime": "2025-05-10T11:30:00",
-    "layovers": 1,
-    "status": "delayed",
-    "prices": { "economy": 440, "business": 950, "first": 1800 },
-    "seatsAvailable": { "economy": 6, "business": 3, "first": 1 }
-  },
-  {
-    "id": "LH404",
-    "airline": "Lufthansa",
-    "origin": "FRA",
-    "destination": "ORD",
-    "departureTime": "2025-05-11T12:00:00",
-    "arrivalTime": "2025-05-11T16:30:00",
-    "layovers": 0,
-    "status": "on time",
-    "prices": { "economy": 390, "business": 880, "first": 1600 },
-    "seatsAvailable": { "economy": 4, "business": 2, "first": 1 }
-  },
-  {
-    "id": "QF505",
-    "airline": "Qantas",
-    "origin": "SYD",
-    "destination": "LAX",
-    "departureTime": "2025-05-12T22:00:00",
-    "arrivalTime": "2025-05-12T15:00:00",
-    "layovers": 1,
-    "status": "canceled",
-    "prices": { "economy": 780, "business": 1500, "first": 2800 },
-    "seatsAvailable": { "economy": 0, "business": 0, "first": 0 }
-  },
-  {
-    "id": "QF506",
-    "airline": "Qantas",
-    "origin": "SYD",
-    "destination": "LAX",
-    "departureTime": "2025-05-13T10:00:00",
-    "arrivalTime": "2025-05-13T05:00:00",
-    "layovers": 0,
-    "status": "on time",
-    "prices": { "economy": 750, "business": 1480, "first": 2700 },
-    "seatsAvailable": { "economy": 6, "business": 1, "first": 1 }
-  },
-  {
-    "id": "EK606",
-    "airline": "Emirates",
-    "origin": "DXB",
-    "destination": "JFK",
-    "departureTime": "2025-05-13T03:00:00",
-    "arrivalTime": "2025-05-13T09:00:00",
-    "layovers": 0,
-    "status": "on time",
-    "prices": { "economy": 680, "business": 1350, "first": 2500 },
-    "seatsAvailable": { "economy": 3, "business": 2, "first": 1 }
   }
 ]
