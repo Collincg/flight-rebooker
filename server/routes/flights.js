@@ -12,6 +12,21 @@ const flights = require('../data/flights.json'); // Load flight data from a JSON
 const req = require('express/lib/request');
 
 
+
+// Database connection code
+require('dotenv').config(); // Load environment variables from a .env file
+
+const { Pool } = require('pg'); // Import the pg module to connect to PostgreSQL database
+
+const pool = new Pool({
+  user: process.env.DB_USER, // Database username from environment variables
+  host: process.env.DB_HOST, // Database host from environment variables
+  database: process.env.DB_NAME, // Database name from environment variables
+  password: process.env.DB_PASSWORD, // Database password from environment variables
+  port: process.env.DB_PORT, // Database port from environment variables
+})
+
+
 // Hard Code a simulated user with a booked filght
 let userFlight = {
   userId: 'user123',
