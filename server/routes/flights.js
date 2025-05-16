@@ -9,7 +9,7 @@
 const express = require('express'); // Import the express module to create a web server and define routes.
 const router = express.Router(); //creates a modular router object to define routes for the /api/flights endpoint.
 const flights = require('../data/flights.json'); // Load flight data from a JSON file. This file contains an array of flight objects with various properties.
-const req = require('express/lib/request');
+const req = require('express/lib/request'); // Import the request object from express to handle incoming requests.
 
 
 
@@ -22,10 +22,18 @@ const pool = new Pool({
   user: process.env.DB_USER, // Database username from environment variables
   host: process.env.DB_HOST, // Database host from environment variables
   database: process.env.DB_NAME, // Database name from environment variables
-  password: process.env.DB_PASSWORD, // Database password from environment variables
+  password: process.env.DB_PASSWORD || null, // Use null if password is not provided
   port: process.env.DB_PORT, // Database port from environment variables
 })
 
+// This will test the connection to the database and log the current timestamp if successful.
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('Error connecting to the database:', err);
+  } else {
+    console.log('Database connected successfully:', res.rows[0]);
+  }
+});
 
 // Hard Code a simulated user with a booked filght
 let userFlight = {
@@ -35,43 +43,65 @@ let userFlight = {
 
 // Define a route to get all flights
 // This route handles GET requests to the root URL of the flights API (e.g., /api/flights)
-router.get('/', (req, res) => {
-  res.json(flights);
+router.get('/', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM flights'); // Query the database to get all flights
+    res.json(result.rows); // Return the flight data as a JSON response
+  }
+  catch (error) {
+    console.error('Error fetching flights:', error); // Log any errors that occur during the query
+    res.status(500).json({ error: 'Internal server error' }); // Return a 500 error if something goes wrong
+  }
 });
 
 
 // Route to get the user's current booked flight
 // This route handles GET requests to /api/flights/user-flight
-router.get('/user-flight', (req, res) => {
-  const bookedFlight = flights.find(flight => flight.id === userFlight.bookedFlightId); 
+router.get('/user-flight', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM flights WHERE id = $1', [userFlight.bookedFlightId]); // Query the database to get the user's booked flight
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'No booked flight found for the user' }); // Return a 404 error if no flight is found
+    }
 
-  if (!bookedFlight) {
-    return res.status(404).json({ error: 'No booked flight found for the user' }); 
+    res.json({ userId: userFlight.userId, bookedFlight: result.rows[0] }); // Return the user's booked flight as a JSON response
   }
-
-  res.json({ userId: userFlight.userId, bookedFlight }); // Return the user's booked flight as JSON response
-})
+  catch (err) {
+    console.error('Error fetching user flight:', err); // Log any errors that occur during the query
+    res.status(500).json({ error: 'Internal server error' }); // Return a 500 error if something goes wrong
+  }
+});
 
 
 // Route to monitor the status of the user's booked flight
-router.get('/user-flight/status', (req, res) => {
-  const bookedFlight = flights.find(flight => flight.id === userFlight.bookedFlightId);
+router.get('/user-flight/status', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM flights WHERE id = $1', [userFlight.bookedFlightId]); // Query the database to get the user's booked flight
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'No booked flight found for the user' }); 
+    }
 
-  if (!bookedFlight) {
-    return res.status(404).json({ error: 'No booked flight found for the user' });
+    const bookedFlight = result.rows[0]; // Get the booked flight from the query result
+
+    if (bookedFlight.status === 'on time') {
+      return res.json({ message: 'Your flight is on time', bookedFlight });
+    }
+    else if (bookedFlight.status === 'delayed') {
+      return res.json({ message: 'Your flight is delayed', bookedFlight });
+    }
+    else if (bookedFlight.status === 'canceled') {
+      return res.json({ message: 'Your flight is canceled', bookedFlight });
+    }
+    else {
+      return res.status(400).json({ error: 'Flight status is unknown' });
+    }
   }
-
-  // Check the status of the booked flight
-  if (bookedFlight.status === "on time") {
-    return res.json({ message: 'Your flight is on time', bookedFlight });
-  } else if (bookedFlight.status === "delayed") {
-    return res.json({ message: 'Your flight is delayed', bookedFlight });
-  } else if (bookedFlight.status === "canceled") {
-    return res.json({ message: 'Your flight is canceled', bookedFlight });
+  catch (err) {
+    console.error('Error fetching flight status: ', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  // Default response if status is unknown
-  res.json({ message: 'Flight status is unknown', bookedFlight });
 });
 
 
@@ -81,122 +111,155 @@ router.get('/user-flight/status', (req, res) => {
  * Filters the flights array based on the provided parameters.
  * Returns the filtered flights as a JSON response.
  */
-router.get('/filter', (req, res) => {
-  const { destination, date, airline } = req.query; 
+router.get('/filter', async (req, res) => {
+  const { origin, destination, departureTime, airline } = req.query; // Extract query parameters from the request
 
-  // Filter flights based on query parameters
- let filteredFlights = flights;
+  try {
+    // Build the base query
+    let query = 'SELECT * FROM flights WHERE 1=1'; // "1=1" is a placeholder to simplify adding conditions
+    const queryParams = [];
 
-  // Check if destination, date, or airline is provided in the query parameters
-  // If so, filter the flights array accordingly
+    // Add filters dynamically based on the query parameters
+    if (origin) {
+      queryParams.push(origin.toLowerCase());
+      query += ` AND LOWER(origin) = $${queryParams.length}`;
+    }
+    
+    if (destination) {
+      queryParams.push(destination.toLowerCase());
+      query += ` AND LOWER(destination) = $${queryParams.length}`;
+    }
 
-  // filter() is used to create a new array containing only flights that match the condition.
-  if (destination) {
-    filteredFlights = filteredFlights.filter(flight => flight.destination.toLowerCase() === destination.toLowerCase());
+    if (departureTime) {
+      queryParams.push(departureTime);
+      query += ` AND departure_time::TEXT LIKE $${queryParams.length} || '%'`; // Match the start of the date string
+    }
+
+    if (airline) {
+      queryParams.push(airline.toLowerCase());
+      query += ` AND LOWER(airline) = $${queryParams.length}`;
+    }
+
+    // Execute the query
+    const result = await pool.query(query, queryParams);
+
+    // Check if no flights match the filter criteria
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'No flights found matching the criteria' });
+    }
+
+    // Return the filtered flights
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error filtering flights:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  if (date) {
-    filteredFlights = filteredFlights.filter(flight => flight.departureTime.startsWith(date));
-  }
-
-  if (airline) {
-    filteredFlights = filteredFlights.filter(flight => flight.airline.toLowerCase() === airline.toLowerCase());
-  }
-
-  // check if no flight matches the filter criteria
-  if (filteredFlights.length === 0) {
-    return res.status(404).json({ error: 'No flights found matching the criteria' }); // Return a 404 error if no flights match the criteria
-  }
-
-  res.json(filteredFlights);
-})
+});
 
 
 // Route to get rebooking options for the user's booked flight
 // This route handles GET requests to /api/flights/rebooking-options
-router.get('/user-flight/rebooking-options', (req, res) => {
-  const bookedFlight = flights.find(flight => flight.id === userFlight.bookedFlightId);
+router.get('/user-flight/rebooking-options', async (req, res) => {
+  
+  try {
+    const bookedFlightResult = await pool.query('SELECT * FROM flights WHERE id = $1', [userFlight.bookedFlightId]);
+    
+    if (bookedFlightResult.rows.length === 0){
+      return res.status(404).json({ error: 'No booked flight found for the user'});
+    }
 
-  if (!bookedFlight) {
-    return res.status(404).json({ error: 'No booked flight found for the user' });
-  }
+    const bookedFlight = bookedFlightResult.rows[0]; // Get the booked flight from the query result
+    
+    // Ensure departure_time is valid and convert it to a Date object
+    if (!bookedFlight.departure_time) {
+      return res.status(500).json({ error: 'Invalid departure time for the booked flight' });
+    }
+    const departureTime = new Date(bookedFlight.departure_time); // Convert departure_time to a Date object
 
-  // if (bookedFlight.status !== 'delayed' && bookedFlight.status !== 'canceled') {
-  //   return res.status(400).json({ error: 'Flight is not delayed or caneled. No rebooking options needed' });
-  // }
-
-  // Suggest flights with the same origin and destination, within 24 hours of departure time
-  const departureTime = new Date(bookedFlight.departureTime); // Convert departure time to a Date object
-  const rebookingOptions = flights.filter(flight => {
-    const flightDepartureTime = new Date(flight.departureTime); // Convert flight departure time to a Date object
-    const timeDifference = Math.abs(flightDepartureTime - departureTime) / (1000 * 60 * 60); // Calculate time difference in hours
-
-    return (
-      flight.id !== bookedFlight.id && // Exclude the booked flight itself
-      flight.origin === bookedFlight.origin && 
-      flight.destination === bookedFlight.destination &&
-      timeDifference <= 24 && // Check if within 24 hours
-      flight.status !== 'canceled' // Exclude canceled flights
+    const rebookingOptionsResult = await pool.query(
+      `SELECT * FROM flights
+       WHERE id != $1
+       AND origin = $2
+       AND destination = $3
+       AND status != 'canceled'
+       AND ABS(EXTRACT(EPOCH FROM (departure_time - $4)) / 3600) <= 24`, // make sure the new flight is within 24 hours of the original flight
+       [bookedFlight.id, bookedFlight.origin, bookedFlight.destination, departureTime]
     );
-  });
 
-  if (rebookingOptions.length === 0) {
-    return res.status(404).json({ error: 'No rebooking options available' });
+    if (rebookingOptionsResult.rows.length === 0){
+      return res.status(404).json({ error: 'No rebooking options available' });
+    }
+
+    res.json(rebookingOptionsResult.rows);
+  } catch (err) {
+    console.error('Error fetching rebooking options: ', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  res.json(rebookingOptions); // Return the rebooking options as JSON response
 });
 
 
 // Route to rebook the user's flight
-router.post('/user-flight/rebook', (req, res) => {
+router.post('/user-flight/rebook', async (req, res) => {
   const { newFlightId } = req.body; // Extract new flight ID from the request body
 
-  const newFlight = flights.find(flight => flight.id === newFlightId); // Find the new flight by ID
-  if (!newFlight) {
-    return res.status(404).json({ error: 'New flight not found' });
+  try {
+    // Check if the new flight exists in the database
+    const newFlightResult = await pool.query('SELECT * FROM flights WHERE id = $1', [newFlightId]);
+    if (newFlightResult.rows.length === 0) {
+      return res.status(404).json({ error: 'New flight not found' });
+    }
+
+    const newFlight = newFlightResult.rows[0]; // Get the new flight from the query result
+
+    // Check if the new flight has the same origin and destination as the currently booked flight
+    const currentFlightResult = await pool.query('SELECT * FROM flights WHERE id = $1', [userFlight.bookedFlightId]);
+    if (currentFlightResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Current booked flight not found' });
+    }
+
+    const currentFlight = currentFlightResult.rows[0];
+    if (newFlight.origin !== currentFlight.origin || newFlight.destination !== currentFlight.destination) {
+      return res.status(400).json({ error: 'New flight must have the same origin and destination' });
+    }
+
+    // Check if the new flight is canceled
+    if (newFlight.status === 'canceled') {
+      return res.status(400).json({ error: 'New flight is canceled. Cannot rebook' });
+    }
+
+    // Update the hardcoded user's booked flight ID
+    userFlight.bookedFlightId = newFlightId;
+
+    res.json({ message: 'Flight rebooked successfully', newFlight }); // Return success message and the new flight as JSON response
+  } catch (err) {
+    console.error('Error rebooking flight:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  if (
-    newFlight.origin !== flights.find(flight => flight.id === userFlight.bookedFlightId).origin ||
-    newFlight.destination !== flights.find(flight => flight.id === userFlight.bookedFlightId).destination
-  ){
-    return res.status(400).json({ error: 'New flight must have the same origin and destination' });
-  }
-
-  if (newFlight.status === 'canceled') {
-    return res.status(400).json({ error: 'New flight is canceled. Cannot rebook' });
-  }
-
-  // Update the user's booked flight to the new flight ID
-  userFlight.bookedFlightId = newFlightId;
-
-  res.json({ message: 'Flight rebooked successfully', newFlight }); // Return success message and the new flight as JSON response
 });
 
 
 // Define a route to rebook a flight
 // This route handles PUT requests to /api/flights/rebook/:id and allows updating the status of a specific flight.
 // The :id in the route allows the client to specify which flight to update (e.g., /api/flights/rebook/AA123).
-router.put('/rebook/:id', (req, res) => {
+// router.put('/rebook/:id', (req, res) => {
 
-  // The PUT request sends data in the body (e.g., { "newStatus": "rebooked" }).
-  const { id } = req.params; // Extract flight ID from the URL parameters
-  const { newStatus } = req.body; // Extract new status from the request body
+//   // The PUT request sends data in the body (e.g., { "newStatus": "rebooked" }).
+//   const { id } = req.params; // Extract flight ID from the URL parameters
+//   const { newStatus } = req.body; // Extract new status from the request body
 
-  // Find the flight by ID
-  const flight = flights.find(flight => flight.id === id); 
+//   // Find the flight by ID
+//   const flight = flights.find(flight => flight.id === id); 
 
-  // If flight not found, return 404 error
-  if (!flight) {
-    return res.status(404).json({ error: 'Flight not found' }); 
-  }
+//   // If flight not found, return 404 error
+//   if (!flight) {
+//     return res.status(404).json({ error: 'Flight not found' }); 
+//   }
 
-  flight.status = newStatus || 'rebooked'; // Update flight status to 'rebooked' or the new status provided
+//   flight.status = newStatus || 'rebooked'; // Update flight status to 'rebooked' or the new status provided
 
-  // Return success message and the updated flight as JSON response
-  res.json({ message: 'Flight rebooked successfully', flight }); 
-});
+//   // Return success message and the updated flight as JSON response
+//   res.json({ message: 'Flight rebooked successfully', flight }); 
+// });
 
 
 // export the router so it can be used in other files (like app.js)
