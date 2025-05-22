@@ -33,10 +33,74 @@
   }
 }
 
+
+
 .card {
   padding: 2em;
 }
 
 .read-the-docs {
   color: #888;
+}
+
+
+
+
+
+
+
+body {
+  background-color: #f0f2f5; /* light gray background */
+  color: #222; /* dark text */
+}
+
+.flight-card {
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease;
+  color: #222;  /* <-- force readable dark text */
+}
+
+.flight-card:hover {
+  transform: scale(1.02);
+  background-color: #fff;
+}
+
+.flight-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.flight-route {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.flight-times,
+.flight-details {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.3rem;
+}
+
+.flight-price {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #0077cc;
+}
+.flight-status.delayed {
+  color: orange;
+}
+.flight-status.canceled {
+  color: red;
+}
+.flight-status.on-time {
+  color: green;
 }
