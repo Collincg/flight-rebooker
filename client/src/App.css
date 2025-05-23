@@ -104,3 +104,31 @@ body {
 .flight-status.on-time {
   color: green;
 }
+
+
+/* filter styling */
+.flight-filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin-bottom: 1em;
+}
+.flight-filter-form input,
+.flight-filter-form button {
+  padding: 0.5em;
+  font-size: 1em;
+}
+.flight-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.flight-list.fade {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.flight-list.fade-in {
+  opacity: 1;
+  transition: opacity 0.4s;
+}

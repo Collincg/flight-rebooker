@@ -112,7 +112,7 @@ router.get('/user-flight/status', async (req, res) => {
  * Returns the filtered flights as a JSON response.
  */
 router.get('/filter', async (req, res) => {
-  const { origin, destination, departureTime, airline } = req.query; // Extract query parameters from the request
+  const { origin, destination, departureTime, airline, layovers } = req.query; // Extract query parameters from the request
 
   try {
     // Build the base query
@@ -132,12 +132,17 @@ router.get('/filter', async (req, res) => {
 
     if (departureTime) {
       queryParams.push(departureTime);
-      query += ` AND departure_time::TEXT LIKE $${queryParams.length} || '%'`; // Match the start of the date string
+      query += ` AND departure_time::TEXT LIKE $${queryParams.length} || '%'`; // Match the start of the date string. This works if departureTime is passed as a date string like "2025-05-07"
     }
 
     if (airline) {
       queryParams.push(airline.toLowerCase());
       query += ` AND LOWER(airline) = $${queryParams.length}`;
+    }
+
+    if (layovers !== undefined) {
+      queryParams.push(Number(layovers));
+      query += ` AND layovers <= $${queryParams.length}`;
     }
 
     // Execute the query
@@ -190,7 +195,7 @@ router.get('/user-flight/rebooking-options', async (req, res) => {
       return res.status(404).json({ error: 'No rebooking options available' });
     }
 
-    res.json(rebookingOptionsResult.rows);
+    res.json(rebookingOptionsResult.rows); // Return the rebooking options as a JSON response (array of flights)
   } catch (err) {
     console.error('Error fetching rebooking options: ', err);
     res.status(500).json({ error: 'Internal server error' });
