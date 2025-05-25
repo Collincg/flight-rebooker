@@ -19,11 +19,18 @@ require('dotenv').config(); // Load environment variables from a .env file
 const { Pool } = require('pg'); // Import the pg module to connect to PostgreSQL database
 
 const pool = new Pool({
-  user: process.env.DB_USER, // Database username from environment variables
-  host: process.env.DB_HOST, // Database host from environment variables
-  database: process.env.DB_NAME, // Database name from environment variables
-  password: process.env.DB_PASSWORD || null, // Use null if password is not provided
-  port: process.env.DB_PORT, // Database port from environment variables
+  // // Database connection configuration for local development
+  // user: process.env.DB_USER, // Database username from environment variables
+  // host: process.env.DB_HOST, // Database host from environment variables
+  // database: process.env.DB_NAME, // Database name from environment variables
+  // password: process.env.DB_PASSWORD || null, // Use null if password is not provided
+  // port: process.env.DB_PORT, // Database port from environment variables
+
+  // connection configuration for Railway
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false // required for Railway deployment
+  }
 })
 
 // This will test the connection to the database and log the current timestamp if successful.
