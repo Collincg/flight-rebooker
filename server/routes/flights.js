@@ -243,29 +243,5 @@ router.post('/user-flight/rebook', async (req, res) => {
 });
 
 
-// Define a route to rebook a flight
-// This route handles PUT requests to /api/flights/rebook/:id and allows updating the status of a specific flight.
-// The :id in the route allows the client to specify which flight to update (e.g., /api/flights/rebook/AA123).
-// router.put('/rebook/:id', (req, res) => {
-
-//   // The PUT request sends data in the body (e.g., { "newStatus": "rebooked" }).
-//   const { id } = req.params; // Extract flight ID from the URL parameters
-//   const { newStatus } = req.body; // Extract new status from the request body
-
-//   // Find the flight by ID
-//   const flight = flights.find(flight => flight.id === id); 
-
-//   // If flight not found, return 404 error
-//   if (!flight) {
-//     return res.status(404).json({ error: 'Flight not found' }); 
-//   }
-
-//   flight.status = newStatus || 'rebooked'; // Update flight status to 'rebooked' or the new status provided
-
-//   // Return success message and the updated flight as JSON response
-//   res.json({ message: 'Flight rebooked successfully', flight }); 
-// });
-
-
 // export the router so it can be used in other files (like app.js)
 module.exports = router;
