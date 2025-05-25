@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import './App.css';
+const API = import.meta.env.VITE_API_URL;
+
 
 export default function UserFlight() {
   const [flight, setFlight] = useState(null)
@@ -10,12 +12,12 @@ export default function UserFlight() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    axios.get('/api/flights/user-flight')
+    axios.get(`${API}/api/flights/user-flight`)
       .then(res => {
         setFlight(res.data.bookedFlight)
         setLoading(false)
         if (res.data.bookedFlight) {
-          axios.get('/api/flights/user-flight/status')
+          axios.get(`${API}/api/flights/user-flight/status`)
             .then(statusRes => setStatus(statusRes.data.status))
             .catch(err => {
               setStatus('unknown');
@@ -31,7 +33,7 @@ export default function UserFlight() {
   }, []);
 
   const handleShowRebooking = () => {
-    axios.get('/api/flights/user-flight/rebooking-options')
+    axios.get(`${API}/api/flights/user-flight/rebooking`)
       .then(res => {
         setRebookingOptions(res.data) // Assuming the response is an array of rebooking options
         setShowRebooking(true)
@@ -44,7 +46,7 @@ export default function UserFlight() {
   }
 
   const handleRebook = (flightId) => {
-    axios.post('/api/flights/user-flight/rebook', { newFlightId: flightId })
+    axios.post(`${API}/api/flights/user-flight/rebook`, { newFlightId: flightId })
       .then(res => {
         alert('Rebooked successfully!')
         window.location.reload()

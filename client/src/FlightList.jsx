@@ -30,7 +30,7 @@ function FlightList() {
     const [filtering, setFiltering] = useState(false); // <-- animation state
 
     useEffect(() => {
-        axios.get('/api/flights') // Fetch flight data from the backend API
+        axios.get(`${import.meta.env.VITE_API_URL}/api/flights`) // Fetch flight data from the backend API
             .then(res => {
                 console.log("Fetched flights API response:", res.data); // Log the fetched data
                 setFlights(res.data);
@@ -57,7 +57,7 @@ function FlightList() {
       if (value) params[key] = value;
     });
     setTimeout(() => {
-      axios.get('/api/flights/filter', { params })
+      axios.get(`${import.meta.env.VITE_API_URL}/api/flights/filter`, { params })
         .then(res => setFlights(res.data))
         .catch(err => {
           if (err.response && err.response.status === 404) {
@@ -81,7 +81,7 @@ function FlightList() {
     });
     setFiltering(true);
     setTimeout(() => {
-      axios.get('/api/flights')
+      axios.get(`${import.meta.env.VITE_API_URL}/api/flights`)
         .then(res => setFlights(res.data))
         .catch(err => console.error('Error fetching flights:', err))
         .finally(() => setFiltering(false));

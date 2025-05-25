@@ -8,7 +8,7 @@
 // import required modules
 const express = require('express'); // Import the express module to create a web server and define routes.
 const router = express.Router(); //creates a modular router object to define routes for the /api/flights endpoint.
-const flights = require('../data/flights.json'); // Load flight data from a JSON file. This file contains an array of flight objects with various properties.
+// const flights = require('../data/flights.json'); // Load flight data from a JSON file. This file contains an array of flight objects with various properties.
 const req = require('express/lib/request'); // Import the request object from express to handle incoming requests.
 
 
