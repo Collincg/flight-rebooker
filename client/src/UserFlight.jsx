@@ -33,7 +33,7 @@ export default function UserFlight() {
   }, []);
 
   const handleShowRebooking = () => {
-    axios.get(`${API}/api/flights/user-flight/rebooking`)
+    axios.get(`${API}/api/flights/user-flight/rebooking-options`)
       .then(res => {
         setRebookingOptions(res.data) // Assuming the response is an array of rebooking options
         setShowRebooking(true)
