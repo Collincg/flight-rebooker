@@ -6,6 +6,10 @@ A full-stack web app where users can view, book, rebook, and cancel flights. Bui
 
 ---
 
+![Flight UI](./client/public/images/UI.png)
+
+---
+
 ## Features
 
 - View all available flights
