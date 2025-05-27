@@ -94,7 +94,7 @@ It currently uses **simulated flight data stored in PostgreSQL**, with no real-t
 
 ## Future Improvements
 
-- ✈**Connect to a real flights API**  
+- **Connect to a real flights API**  
   This would enable real-time flight status, cancellations, and route availability, thus making the app usable by real users.
 
 - **Implement user authentication**  
