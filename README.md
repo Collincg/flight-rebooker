@@ -8,12 +8,12 @@ A full-stack web app where users can view, book, rebook, and cancel flights. Bui
 
 ## Features
 
-- 🛫 View all available flights
-- 📦 Each user gets a unique ID via `localStorage` (no login required)
-- 🎫 Book your first flight directly from the list
-- 🔁 If your flight is delayed or canceled, view rebooking options
-- ❌ Cancel your current flight at any time
-- 🔄 Your flight status auto-updates in real time
+- View all available flights
+- Each user gets a unique ID via `localStorage` (no login required)
+- Book your first flight directly from the list
+- If your flight is delayed or canceled, view rebooking options
+- Cancel your current flight at any time
+- Your flight status auto-updates in real time
 
 ---
 
@@ -81,7 +81,24 @@ This project was created to:
 
 ---
 
-## 📄 License
+## Project Scope & Limitations
+
+This project represents a **functional MVP+** version of a flight rebooking system.  
+It currently uses **simulated flight data stored in PostgreSQL**, with no real-time or third-party flight integration.
+
+---
+
+## Future Improvements
+
+- ✈**Connect to a real flights API**  
+  This would enable real-time flight status, cancellations, and route availability, thus making the app usable by real users.
+
+- **Implement user authentication**  
+  While users are currently tracked anonymously via `localStorage`, future versions could support full account login, persistent sessions, and profile management.
+
+---
+
+## License
 
 This project is licensed under the **[MIT License](LICENSE)**.  
 You are free to use, modify, and distribute this code. See the `LICENSE` file for details.
