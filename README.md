@@ -1,6 +1,6 @@
 # ✈️ Flight Rebooking Assistant
 
-A full-stack web app where users can view, book, rebook, and cancel flights — built with React, Express, and PostgreSQL.
+A full-stack web app where users can view, book, rebook, and cancel flights. Built with React, Express, and PostgreSQL.
 
 **Live App**: [https://flight-rebooker.vercel.app](https://flight-rebooker.vercel.app)
 
@@ -84,7 +84,7 @@ This project was created to:
 ## 📄 License
 
 This project is licensed under the **[MIT License](LICENSE)**.  
-You are free to use, modify, and distribute this code — see the `LICENSE` file for details.
+You are free to use, modify, and distribute this code. See the `LICENSE` file for details.
 
 ---
 
