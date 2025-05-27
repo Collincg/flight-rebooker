@@ -81,6 +81,13 @@ This project was created to:
 
 ---
 
+## 📄 License
+
+This project is licensed under the **[MIT License](LICENSE)**.  
+You are free to use, modify, and distribute this code — see the `LICENSE` file for details.
+
+---
+
 ## 👋 Author
 
 Built by **Collin Graff**  
