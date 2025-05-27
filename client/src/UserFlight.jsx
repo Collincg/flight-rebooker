@@ -3,8 +3,19 @@ import axios from 'axios';
 import './App.css';
 const API = import.meta.env.VITE_API_URL;
 
+// Function to get or create a unique user ID
+const getOrCreateUserId = () => {
+  let userId = localStorage.getItem('userId');
+  if (!userId) {
+    userId = 'user_' + Math.random().toString(36).substring(2, 10);
+    localStorage.setItem('userId', userId);
+  }
+  return userId;
+};
 
-export default function UserFlight() {
+const userId = getOrCreateUserId();
+
+export default function UserFlight({ refreshTrigger }) {
   const [flight, setFlight] = useState(null)
   const [status, setStatus] = useState(null)
   const [rebookingOptions, setRebookingOptions] = useState([])
@@ -12,12 +23,12 @@ export default function UserFlight() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    axios.get(`${API}/api/flights/user-flight`)
+    axios.get(`${API}/api/flights/user-flight`, { params: { userId } })
       .then(res => {
         setFlight(res.data.bookedFlight)
         setLoading(false)
         if (res.data.bookedFlight) {
-          axios.get(`${API}/api/flights/user-flight/status`)
+          axios.get(`${API}/api/flights/user-flight/status`, { params: { userId } })
             .then(statusRes => setStatus(statusRes.data.status))
             .catch(err => {
               setStatus('unknown');
@@ -30,10 +41,10 @@ export default function UserFlight() {
         setFlight(null);
         console.error(err);
       });
-  }, []);
+  }, [refreshTrigger]); // Dependency on refreshTrigger to re-fetch flight data when it changes
 
   const handleShowRebooking = () => {
-    axios.get(`${API}/api/flights/user-flight/rebooking-options`)
+    axios.get(`${API}/api/flights/user-flight/rebooking-options`, { params: { userId } })
       .then(res => {
         setRebookingOptions(res.data) // Assuming the response is an array of rebooking options
         setShowRebooking(true)
@@ -45,8 +56,13 @@ export default function UserFlight() {
       });
   }
 
+  const handleHideRebooking = () => {
+    setShowRebooking(false);
+    setRebookingOptions([]); // optional: clears the options
+  };
+
   const handleRebook = (flightId) => {
-    axios.post(`${API}/api/flights/user-flight/rebook`, { newFlightId: flightId })
+    axios.post(`${API}/api/flights/user-flight/rebook`, { userId, newFlightId: flightId })
       .then(res => {
         alert('Rebooked successfully!')
         window.location.reload()
@@ -56,6 +72,20 @@ export default function UserFlight() {
         console.error(err)
       });
   }
+
+  const handleCancel = () => {
+    axios.post(`${API}/api/flights/user-flight/cancel`, { userId })
+        .then(() => {
+        alert("Flight canceled!");
+        setFlight(null); // Clear current flight state
+        setShowRebooking(false); // Reset rebooking state
+        })
+        .catch(err => {
+        alert("Failed to cancel the flight.");
+        console.error(err);
+        });
+    };
+
 
   if (loading) return <div>Loading your flight...</div>
 
@@ -108,6 +138,12 @@ export default function UserFlight() {
       {(status === 'delayed' || status === 'canceled' || flight.status === 'delayed' || flight.status === 'canceled') && !showRebooking && (
         <button onClick={handleShowRebooking}>See Rebooking Options</button>
       )}
+      <button onClick={handleCancel} style={{ marginTop: '10px' }}>
+        Cancel My Booking
+      </button>
+      <button onClick={handleHideRebooking} style={{ marginTop: '10px' }}>
+        Hide Rebooking Options
+      </button>
       {showRebooking && (
         <div>
             <h3>Rebooking Options</h3>

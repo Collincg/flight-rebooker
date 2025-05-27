@@ -10,6 +10,21 @@ import { useState, useEffect, use } from 'react';
 import axios from 'axios'; // Axios is a library for making HTTP requests
 import './App.css'; // Import CSS styles for the component
 
+const API = import.meta.env.VITE_API_URL; // Get the API URL from environment variables
+
+// Function to get or create a unique user ID
+const getOrCreateUserId = () => {
+  let userId = localStorage.getItem('userId');
+  if (!userId) {
+    userId = 'user_' + Math.random().toString(36).substring(2, 10);
+    localStorage.setItem('userId', userId);
+  }
+  return userId;
+};
+
+const userId = getOrCreateUserId();
+
+
 /**
  * FlightList component to display a list of flights
  * This code runs once when the component loads:
@@ -18,7 +33,7 @@ import './App.css'; // Import CSS styles for the component
    The [] at the end tells it to run only once, just like componentDidMount() in older React.
  * */ 
 
-function FlightList() {
+function FlightList({ onFlightBooked }) {
     const [flights, setFlights] = useState([]); // State to hold flight data
     const [filters, setFilters] = useState({
         origin: '',
@@ -86,6 +101,21 @@ function FlightList() {
         .catch(err => console.error('Error fetching flights:', err))
         .finally(() => setFiltering(false));
     }, 200);
+  };
+
+  const handleBookFlight = (flightId) => {
+    axios.post(`${API}/api/flights/user-flight/rebook`, {
+        userId,
+        newFlightId: flightId
+    })
+    .then(() => {
+        alert("Flight booked!");
+        onFlightBooked(); // trigger the refresh in UserFlight
+    })
+    .catch(err => {
+        alert("Booking failed.");
+        console.error(err);
+    });
   };
 
     return (
@@ -173,6 +203,7 @@ function FlightList() {
                   currency: 'USD'
                 })}
               </div>
+              <button onClick={() => handleBookFlight(flight.id)}>Book This Flight</button>
             </div>
           ))
         )}

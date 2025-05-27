@@ -6,12 +6,14 @@ import FlightList from './FlightList.jsx'
 import UserFlight from './UserFlight.jsx'
 
 function App() {
+  const [refreshUserFlight, setRefreshUserFlight] = useState(false);
+
   return (
     <div className="App">
       <h1>Flight Rebooking Assistant</h1>
-      <UserFlight />  {/* Show user's flight info*/}
+      <UserFlight refreshTrigger={refreshUserFlight} />
       <hr />
-      <FlightList />  {/* All flights */}
+      <FlightList onFlightBooked={() => setRefreshUserFlight(prev => !prev)} />
     </div>
   )
 }
