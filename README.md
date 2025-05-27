@@ -6,7 +6,7 @@ A full-stack web app where users can view, book, rebook, and cancel flights — 
 
 ---
 
-## 🚀 Features
+## Features
 
 - 🛫 View all available flights
 - 📦 Each user gets a unique ID via `localStorage` (no login required)
@@ -17,7 +17,7 @@ A full-stack web app where users can view, book, rebook, and cancel flights — 
 
 ---
 
-## 🧱 Tech Stack
+## Tech Stack
 
 | Frontend      | Backend           | Database      | Hosting           |
 |---------------|------------------|----------------|--------------------|
@@ -25,7 +25,7 @@ A full-stack web app where users can view, book, rebook, and cancel flights — 
 
 ---
 
-## 🧪 Local Development Setup
+## Local Development Setup
 
 ### Prerequisites
 
@@ -78,12 +78,6 @@ This project was created to:
 - Practice RESTful API design
 - Gain experience deploying apps to production
 - Build a polished, resume-ready software project
-
----
-
-## 📄 License
-
-MIT
 
 ---
 
