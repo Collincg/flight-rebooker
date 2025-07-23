@@ -11,6 +11,8 @@ import axios from 'axios'; // Axios is a library for making HTTP requests
 import './App.css'; // Import CSS styles for the component
 
 const API = import.meta.env.VITE_API_URL; // Get the API URL from environment variables
+// set an API URL for testing locally: http://localhost:8000/api/flights
+// const API = 'http://localhost:8000/api/flights';
 
 // Function to get or create a unique user ID
 const getOrCreateUserId = () => {
@@ -45,7 +47,7 @@ function FlightList({ onFlightBooked }) {
     const [filtering, setFiltering] = useState(false); // <-- animation state
 
     useEffect(() => {
-        axios.get(`${import.meta.env.VITE_API_URL}/api/flights`) // Fetch flight data from the backend API
+        axios.get(`${API}/api/flights`) // Fetch flight data from the backend API
             .then(res => {
                 console.log("Fetched flights API response:", res.data); // Log the fetched data
                 setFlights(res.data);
@@ -72,7 +74,7 @@ function FlightList({ onFlightBooked }) {
       if (value) params[key] = value;
     });
     setTimeout(() => {
-      axios.get(`${import.meta.env.VITE_API_URL}/api/flights/filter`, { params })
+      axios.get(`${API}/api/flights/filter`, { params })
         .then(res => setFlights(res.data))
         .catch(err => {
           if (err.response && err.response.status === 404) {
@@ -96,7 +98,7 @@ function FlightList({ onFlightBooked }) {
     });
     setFiltering(true);
     setTimeout(() => {
-      axios.get(`${import.meta.env.VITE_API_URL}/api/flights`)
+      axios.get(`${API}/api/flights`)
         .then(res => setFlights(res.data))
         .catch(err => console.error('Error fetching flights:', err))
         .finally(() => setFiltering(false));
