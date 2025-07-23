@@ -2,7 +2,11 @@ const { Pool } = require('pg');
 
 // Simple configuration optimized for Supabase transaction pooler
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  host: 'aws-0-us-east-2.pooler.supabase.com',
+  port: 6543,
+  database: 'postgres',
+  user: 'postgres.jmkopacozxlscotgnmfz',
+  password: 'j&ct2AnK!q5?%Tp',
   ssl: {
     rejectUnauthorized: false
   },
