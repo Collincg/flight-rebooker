@@ -1,6 +1,6 @@
 .env.*
-.envnode_modules/
 .env
+node_modules/
 .env.local
 dist/
 build/
