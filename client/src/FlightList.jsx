@@ -8,6 +8,8 @@
  */
 import { useState, useEffect, use } from 'react';
 import axios from 'axios'; // Axios is a library for making HTTP requests
+import LoadingSpinner from './components/LoadingSpinner';
+import FlightCard from './components/FlightCard';
 import './App.css'; // Import CSS styles for the component
 
 const API = import.meta.env.VITE_API_URL; // Get the API URL from environment variables
@@ -37,6 +39,7 @@ const userId = getOrCreateUserId();
 
 function FlightList({ onFlightBooked }) {
     const [flights, setFlights] = useState([]); // State to hold flight data
+    const [loading, setLoading] = useState(true); // State for initial loading
     const [filters, setFilters] = useState({
         origin: '',
         destination: '',
@@ -47,13 +50,16 @@ function FlightList({ onFlightBooked }) {
     const [filtering, setFiltering] = useState(false); // <-- animation state
 
     useEffect(() => {
+        setLoading(true);
         axios.get(`${API}/api/flights`) // Fetch flight data from the backend API
             .then(res => {
                 console.log("Fetched flights API response:", res.data); // Log the fetched data
-                setFlights(res.data);
+                setFlights(res.data.data || res.data); // Handle both old and new API format
+                setLoading(false);
             }) // Update state with the fetched data
             .catch(err => {
                 console.error('Error fetching flights:', err);
+                setLoading(false);
             }); // Handle any errors
 
     }, []); // Fetch flight data when the component mounts
@@ -75,7 +81,7 @@ function FlightList({ onFlightBooked }) {
     });
     setTimeout(() => {
       axios.get(`${API}/api/flights/filter`, { params })
-        .then(res => setFlights(res.data))
+        .then(res => setFlights(res.data.data || res.data))
         .catch(err => {
           if (err.response && err.response.status === 404) {
             setFlights([]);
@@ -99,7 +105,7 @@ function FlightList({ onFlightBooked }) {
     setFiltering(true);
     setTimeout(() => {
       axios.get(`${API}/api/flights`)
-        .then(res => setFlights(res.data))
+        .then(res => setFlights(res.data.data || res.data))
         .catch(err => console.error('Error fetching flights:', err))
         .finally(() => setFiltering(false));
     }, 200);
@@ -119,6 +125,8 @@ function FlightList({ onFlightBooked }) {
         console.error(err);
     });
   };
+
+    if (loading) return <LoadingSpinner message="Loading available flights..." />;
 
     return (
     <div>
@@ -162,51 +170,18 @@ function FlightList({ onFlightBooked }) {
         <button type="submit">Filter</button>
         <button type="button" onClick={handleReset}>Reset</button>
       </form>
+      {filtering && <LoadingSpinner size="small" message="Filtering flights..." />}
       <div className={`flight-list ${filtering ? 'fade' : 'fade-in'}`}>
         {flights.length === 0 ? (
           <p>No flights found.</p>
         ) : (
           flights.map(flight => (
-            <div className="flight-card" key={flight.id}>
-              <div className="flight-header">
-                <span>{flight.airline}</span>
-                <span>{flight.id}</span>
-              </div>
-              <div className="flight-route">
-                {flight.origin} ✈️ {flight.destination}
-              </div>
-              <div className="flight-times">
-                <span>
-                  🛫 {new Date(flight.departure_time || flight.departureTime).toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    weekday: 'short'
-                  })}
-                </span>
-                <span>
-                  🛬 {new Date(flight.arrival_time || flight.arrivalTime).toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    weekday: 'short'
-                  })}
-                </span>
-              </div>
-              <div className="flight-details">
-                <span className={`flight-status ${flight.status?.toLowerCase()}`}>Status: {flight.status}</span>
-                <span>Layovers: {flight.layovers}</span>
-              </div>
-              <div className="flight-price">
-                💺 {flight.prices?.economy?.toLocaleString('en-US', {
-                  style: 'currency',
-                  currency: 'USD'
-                })}
-              </div>
-              <button onClick={() => handleBookFlight(flight.id)}>Book This Flight</button>
-            </div>
+            <FlightCard
+              key={flight.id}
+              flight={flight}
+              onAction={handleBookFlight}
+              actionText="Book This Flight"
+            />
           ))
         )}
       </div>

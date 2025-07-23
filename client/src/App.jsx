@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import './App.css'
 import FlightList from './FlightList.jsx'
-import UserFlight from './UserFlight 2.jsx'
+import UserFlight from './UserFlight.jsx'
 import Toast from './components/Toast'
+import ErrorBoundary from './components/ErrorBoundary'
 
 function App() {
   const [refreshUserFlight, setRefreshUserFlight] = useState(false);
@@ -14,19 +15,25 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <h1>Flight Rebooking Assistant</h1>
-      <UserFlight refreshTrigger={refreshUserFlight} toast={toast} />
-      <hr />
-      <FlightList onFlightBooked={() => setRefreshUserFlight(prev => !prev)} />
-      {toastMessage && (
-        <Toast
-          type={toastMessage.type}
-          message={toastMessage.message}
-          onClose={() => setToastMessage(null)}
-        />
-      )}
-    </div>
+    <ErrorBoundary>
+      <div className="App">
+        <h1>Flight Rebooking Assistant</h1>
+        <ErrorBoundary>
+          <UserFlight refreshTrigger={refreshUserFlight} toast={toast} />
+        </ErrorBoundary>
+        <hr />
+        <ErrorBoundary>
+          <FlightList onFlightBooked={() => setRefreshUserFlight(prev => !prev)} />
+        </ErrorBoundary>
+        {toastMessage && (
+          <Toast
+            type={toastMessage.type}
+            message={toastMessage.message}
+            onClose={() => setToastMessage(null)}
+          />
+        )}
+      </div>
+    </ErrorBoundary>
   )
 }
 

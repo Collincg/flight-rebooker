@@ -1,143 +1,109 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import FlightCard from './components/FlightCard';
+import LoadingSpinner from './components/LoadingSpinner';
+import flightService from './services/flightService';
+import { getOrCreateUserId } from './utils/userService';
 import './App.css';
-const API = import.meta.env.VITE_API_URL;
-
-// Function to get or create a unique user ID
-const getOrCreateUserId = () => {
-  let userId = localStorage.getItem('userId');
-  if (!userId) {
-    userId = 'user_' + Math.random().toString(36).substring(2, 10);
-    localStorage.setItem('userId', userId);
-  }
-  return userId;
-};
 
 const userId = getOrCreateUserId();
 
-export default function UserFlight({ refreshTrigger }) {
+export default function UserFlight({ refreshTrigger, toast }) {
   const [flight, setFlight] = useState(null)
   const [status, setStatus] = useState(null)
   const [rebookingOptions, setRebookingOptions] = useState([])
   const [showRebooking, setShowRebooking] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [rebookingLoading, setRebookingLoading] = useState(false)
 
   useEffect(() => {
-    axios.get(`${API}/api/flights/user-flight`, { params: { userId } })
-      .then(res => {
-        setFlight(res.data.bookedFlight)
-        setLoading(false)
-        if (res.data.bookedFlight) {
-          axios.get(`${API}/api/flights/user-flight/status`, { params: { userId } })
-            .then(statusRes => setStatus(statusRes.data.status))
-            .catch(err => {
-              setStatus('unknown');
-              console.error(err);
-            });
+    const fetchUserFlight = async () => {
+      try {
+        const data = await flightService.getUserFlight(userId);
+        const bookedFlight = data.data?.bookedFlight || data.bookedFlight;
+        setFlight(bookedFlight);
+        setLoading(false);
+        
+        if (bookedFlight) {
+          try {
+            const statusData = await flightService.getUserFlightStatus(userId);
+            setStatus(statusData.data?.status || statusData.status);
+          } catch (err) {
+            setStatus('unknown');
+            console.error(err);
+          }
         }
-      })
-      .catch(err => {
+      } catch (err) {
         setLoading(false);
         setFlight(null);
         console.error(err);
-      });
-  }, [refreshTrigger]); // Dependency on refreshTrigger to re-fetch flight data when it changes
+      }
+    };
 
-  const handleShowRebooking = () => {
-    axios.get(`${API}/api/flights/user-flight/rebooking-options`, { params: { userId } })
-      .then(res => {
-        setRebookingOptions(res.data) // Assuming the response is an array of rebooking options
-        setShowRebooking(true)
-      })
-      .catch(err => {
-        setRebookingOptions([])
-        setShowRebooking(true)
-        console.error(err)
-      });
-  }
+    fetchUserFlight();
+  }, [refreshTrigger]);
+
+  const handleShowRebooking = async () => {
+    try {
+      setRebookingLoading(true);
+      const data = await flightService.getRebookingOptions(userId);
+      setRebookingOptions(Array.isArray(data) ? data : data.data || []);
+      setShowRebooking(true);
+    } catch (err) {
+      setRebookingOptions([]);
+      setShowRebooking(true);
+      toast?.error('Failed to load rebooking options');
+      console.error(err);
+    } finally {
+      setRebookingLoading(false);
+    }
+  };
 
   const handleHideRebooking = () => {
     setShowRebooking(false);
     setRebookingOptions([]); // optional: clears the options
   };
 
-  const handleRebook = (flightId) => {
-    axios.post(`${API}/api/flights/user-flight/rebook`, { userId, newFlightId: flightId })
-      .then(res => {
-        alert('Rebooked successfully!')
-        window.location.reload()
-      })
-      .catch(err => {
-        alert('Failed to rebook.')
-        console.error(err)
-      });
-  }
+  const handleRebook = async (flightId) => {
+    try {
+      await flightService.bookFlight(userId, flightId);
+      toast?.success('Flight rebooked successfully!');
+      window.location.reload();
+    } catch (err) {
+      toast?.error('Failed to rebook flight. Please try again.');
+      console.error(err);
+    }
+  };
 
-  const handleCancel = () => {
-    axios.post(`${API}/api/flights/user-flight/cancel`, { userId })
-        .then(() => {
-        alert("Flight canceled!");
-        setFlight(null); // Clear current flight state
-        setShowRebooking(false); // Reset rebooking state
-        })
-        .catch(err => {
-        alert("Failed to cancel the flight.");
-        console.error(err);
-        });
-    };
+  const handleCancel = async () => {
+    try {
+      await flightService.cancelFlight(userId);
+      alert("Flight canceled!");
+      setFlight(null);
+      setShowRebooking(false);
+    } catch (err) {
+      alert("Failed to cancel the flight.");
+      console.error(err);
+    }
+  };
 
 
-  if (loading) return <div>Loading your flight...</div>
+  if (loading) return <LoadingSpinner message="Loading your flight..." />
 
   if (!flight) return <div><h2>Your Current Flight</h2><p>You have no booked flights.</p></div>
 
   return (
     <div>
       <h2>Your Current Flight</h2>
-      <div className="flight-card">
-        <div className="flight-header">
-          <span>{flight.airline}</span>
-          <span>{flight.id}</span>
-        </div>
-        <div className="flight-route">
-          {flight.origin} ✈️ {flight.destination}
-        </div>
-        <div className="flight-times">
-          <span>
-            🛫 {new Date(flight.departure_time).toLocaleString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-              weekday: 'short'
-            })}
-          </span>
-          <span>
-            🛬 {new Date(flight.arrival_time).toLocaleString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-              weekday: 'short'
-            })}
-          </span>
-        </div>
-        <div className="flight-details">
-          <span className={`flight-status ${status ? status.toLowerCase() : flight.status.toLowerCase()}`}>
-            Status: {status || flight.status}
-          </span>
-          <span>Layovers: {flight.layovers}</span>
-        </div>
-        <div className="flight-price">
-          💺 {flight.prices.economy.toLocaleString('en-US', {
-            style: 'currency',
-            currency: 'USD'
-          })}
-        </div>
-      </div>
+      <FlightCard
+        flight={{...flight, status: status || flight.status}}
+        showAction={false}
+      />
       {(status === 'delayed' || status === 'canceled' || flight.status === 'delayed' || flight.status === 'canceled') && !showRebooking && (
-        <button onClick={handleShowRebooking}>See Rebooking Options</button>
+        <button onClick={handleShowRebooking} disabled={rebookingLoading}>
+          {rebookingLoading ? 'Loading Options...' : 'See Rebooking Options'}
+        </button>
       )}
+      {rebookingLoading && <LoadingSpinner size="small" message="Loading rebooking options..." />}
       <button onClick={handleCancel} style={{ marginTop: '10px' }}>
         Cancel My Booking
       </button>
@@ -152,45 +118,12 @@ export default function UserFlight({ refreshTrigger }) {
             ) : (
             <div className="rebooking-options-list">
                 {Array.isArray(rebookingOptions) && rebookingOptions.map(opt => (
-                <div className="flight-card" key={opt.id}>
-                    <div className="flight-header">
-                    <span>{opt.airline}</span>
-                    <span>{opt.id}</span>
-                    </div>
-                    <div className="flight-route">
-                    {opt.origin} ✈️ {opt.destination}
-                    </div>
-                    <div className="flight-times">
-                    <span>
-                        🛫 {new Date(opt.departure_time).toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        weekday: 'short'
-                        })}
-                    </span>
-                    <span>
-                        🛬 {new Date(opt.arrival_time).toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        weekday: 'short'
-                        })}
-                    </span>
-                    </div>
-                    <div className="flight-details">
-                    <span>Layovers: {opt.layovers}</span>
-                    </div>
-                    <div className="flight-price">
-                    💺 {opt.prices?.economy?.toLocaleString('en-US', {
-                        style: 'currency',
-                        currency: 'USD'
-                    })}
-                    </div>
-                    <button onClick={() => handleRebook(opt.id)}>Rebook</button>
-                </div>
+                  <FlightCard
+                    key={opt.id}
+                    flight={opt}
+                    onAction={handleRebook}
+                    actionText="Rebook"
+                  />
                 ))}
             </div>
             )}
