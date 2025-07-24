@@ -1,8 +1,17 @@
 const pool = require('../config/database');
 
+const isValidUUID = (uuid) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+};
+
 const ensureUserExists = async (userId) => {
   if (!userId) {
     throw new Error('User ID is required');
+  }
+
+  if (!isValidUUID(userId)) {
+    throw new Error('Invalid user ID format - must be a valid UUID');
   }
 
   try {
@@ -18,6 +27,14 @@ const ensureUserExists = async (userId) => {
 };
 
 const getUserWithFlight = async (userId) => {
+  if (!userId) {
+    throw new Error('User ID is required');
+  }
+
+  if (!isValidUUID(userId)) {
+    throw new Error('Invalid user ID format - must be a valid UUID');
+  }
+
   try {
     const result = await pool.query(`
       SELECT f.* 
@@ -33,7 +50,30 @@ const getUserWithFlight = async (userId) => {
   }
 };
 
+const clearUserBooking = async (userId) => {
+  if (!userId) {
+    throw new Error('User ID is required');
+  }
+
+  if (!isValidUUID(userId)) {
+    throw new Error('Invalid user ID format - must be a valid UUID');
+  }
+
+  try {
+    await pool.query(`
+      UPDATE user_flights 
+      SET booked_flight_id = NULL 
+      WHERE user_id = $1
+    `, [userId]);
+  } catch (error) {
+    console.error('Error clearing user booking:', error);
+    throw new Error('Failed to clear user booking');
+  }
+};
+
 module.exports = {
   ensureUserExists,
-  getUserWithFlight
+  getUserWithFlight,
+  clearUserBooking,
+  isValidUUID
 };

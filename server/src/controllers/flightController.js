@@ -62,7 +62,7 @@ const getFilteredFlights = asyncHandler(async (req, res) => {
 });
 
 const getUserFlight = asyncHandler(async (req, res) => {
-  const { userId } = req.query;
+  const userId = req.userId;
 
   await ensureUserExists(userId);
   const bookedFlight = await getUserWithFlight(userId);
@@ -77,7 +77,7 @@ const getUserFlight = asyncHandler(async (req, res) => {
 });
 
 const getUserFlightStatus = asyncHandler(async (req, res) => {
-  const { userId } = req.query;
+  const userId = req.userId;
 
   await ensureUserExists(userId);
   const flight = await getUserWithFlight(userId);
@@ -108,7 +108,7 @@ const getUserFlightStatus = asyncHandler(async (req, res) => {
 });
 
 const getRebookingOptions = asyncHandler(async (req, res) => {
-  const { userId } = req.query;
+  const userId = req.userId;
 
   await ensureUserExists(userId);
   const bookedFlight = await getUserWithFlight(userId);
@@ -155,7 +155,8 @@ const getRebookingOptions = asyncHandler(async (req, res) => {
 });
 
 const rebookFlight = asyncHandler(async (req, res) => {
-  const { userId, newFlightId } = req.body;
+  const userId = req.userId;
+  const { newFlightId } = req.body;
 
   await ensureUserExists(userId);
 
@@ -192,7 +193,7 @@ const rebookFlight = asyncHandler(async (req, res) => {
 });
 
 const cancelFlight = asyncHandler(async (req, res) => {
-  const { userId } = req.body;
+  const userId = req.userId;
 
   await ensureUserExists(userId);
 

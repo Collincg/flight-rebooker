@@ -1,32 +1,8 @@
-// FlightList.jsx
-/**
- * React Hooks:
- * UseState: Allows your component to have data that can change (like flight data). 
- *           To manage the state of the flight data. 
- * UseEffect: Runs code when the component loads (similar to "on page load"). 
- *            To fetch flight data when the component mounts.
- */
-import { useState, useEffect, use } from 'react';
-import axios from 'axios'; // Axios is a library for making HTTP requests
+import { useState, useEffect } from 'react';
 import LoadingSpinner from './components/LoadingSpinner';
 import FlightCard from './components/FlightCard';
-import './App.css'; // Import CSS styles for the component
-
-const API = import.meta.env.VITE_API_URL; // Get the API URL from environment variables
-// set an API URL for testing locally: http://localhost:8000/api/flights
-// const API = 'http://localhost:8000/api/flights';
-
-// Function to get or create a unique user ID
-const getOrCreateUserId = () => {
-  let userId = localStorage.getItem('userId');
-  if (!userId) {
-    userId = 'user_' + Math.random().toString(36).substring(2, 10);
-    localStorage.setItem('userId', userId);
-  }
-  return userId;
-};
-
-const userId = getOrCreateUserId();
+import flightService from './services/flightService';
+import './App.css';
 
 
 /**
@@ -50,19 +26,19 @@ function FlightList({ onFlightBooked }) {
     const [filtering, setFiltering] = useState(false); // <-- animation state
 
     useEffect(() => {
-        setLoading(true);
-        axios.get(`${API}/api/flights`) // Fetch flight data from the backend API
-            .then(res => {
-                console.log("Fetched flights API response:", res.data); // Log the fetched data
-                setFlights(res.data.data || res.data); // Handle both old and new API format
+        const fetchFlights = async () => {
+            try {
+                setLoading(true);
+                const data = await flightService.getAllFlights();
+                setFlights(data.data || data);
+            } catch (error) {
+                console.error('Error fetching flights:', error);
+            } finally {
                 setLoading(false);
-            }) // Update state with the fetched data
-            .catch(err => {
-                console.error('Error fetching flights:', err);
-                setLoading(false);
-            }); // Handle any errors
-
-    }, []); // Fetch flight data when the component mounts
+            }
+        };
+        fetchFlights();
+    }, []);
 
     // Handle filter input changes
   const handleChange = (e) => {
@@ -79,18 +55,20 @@ function FlightList({ onFlightBooked }) {
     Object.entries(filters).forEach(([key, value]) => {
       if (value) params[key] = value;
     });
-    setTimeout(() => {
-      axios.get(`${API}/api/flights/filter`, { params })
-        .then(res => setFlights(res.data.data || res.data))
-        .catch(err => {
-          if (err.response && err.response.status === 404) {
-            setFlights([]);
-          } else {
-            console.error('Error filtering flights:', err);
-          }
-        })
-        .finally(() => setFiltering(false)); // Fade in after data loads
-    }, 200); // 200ms fade out before fetching
+    setTimeout(async () => {
+      try {
+        const data = await flightService.getFilteredFlights(params);
+        setFlights(data.data || data);
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          setFlights([]);
+        } else {
+          console.error('Error filtering flights:', error);
+        }
+      } finally {
+        setFiltering(false);
+      }
+    }, 200);
   };
 
   // Reset filters and show all flights
@@ -103,27 +81,31 @@ function FlightList({ onFlightBooked }) {
       layovers: ''
     });
     setFiltering(true);
-    setTimeout(() => {
-      axios.get(`${API}/api/flights`)
-        .then(res => setFlights(res.data.data || res.data))
-        .catch(err => console.error('Error fetching flights:', err))
-        .finally(() => setFiltering(false));
+    setTimeout(async () => {
+      try {
+        const data = await flightService.getAllFlights();
+        setFlights(data.data || data);
+      } catch (error) {
+        console.error('Error fetching flights:', error);
+      } finally {
+        setFiltering(false);
+      }
     }, 200);
   };
 
-  const handleBookFlight = (flightId) => {
-    axios.post(`${API}/api/flights/user-flight/rebook`, {
-        userId,
-        newFlightId: flightId
-    })
-    .then(() => {
-        alert("Flight booked!");
-        onFlightBooked(); // trigger the refresh in UserFlight
-    })
-    .catch(err => {
-        alert("Booking failed.");
-        console.error(err);
-    });
+  const handleBookFlight = async (flightId) => {
+    try {
+      await flightService.bookFlight(flightId);
+      if (window.showToast) {
+        window.showToast('success', 'Flight booked successfully!');
+      }
+      onFlightBooked();
+    } catch (error) {
+      console.error('Booking failed:', error);
+      if (window.showToast) {
+        window.showToast('error', 'Booking failed. Please try again.');
+      }
+    }
   };
 
     if (loading) return <LoadingSpinner message="Loading available flights..." />;

@@ -10,11 +10,11 @@ const {
   cancelFlight
 } = require('../controllers/flightController');
 const {
-  validateUserId,
   validateFlightId,
   validateFlightFilters,
   sanitizeInput
 } = require('../middleware/validation');
+const { verifyToken } = require('../middleware/auth');
 
 router.use(sanitizeInput);
 
@@ -22,14 +22,14 @@ router.get('/', getAllFlights);
 
 router.get('/filter', validateFlightFilters, getFilteredFlights);
 
-router.get('/user-flight', validateUserId, getUserFlight);
+router.get('/user-flight', verifyToken, getUserFlight);
 
-router.get('/user-flight/status', validateUserId, getUserFlightStatus);
+router.get('/user-flight/status', verifyToken, getUserFlightStatus);
 
-router.get('/user-flight/rebooking-options', validateUserId, getRebookingOptions);
+router.get('/user-flight/rebooking-options', verifyToken, getRebookingOptions);
 
-router.post('/user-flight/rebook', validateUserId, validateFlightId, rebookFlight);
+router.post('/user-flight/rebook', verifyToken, validateFlightId, rebookFlight);
 
-router.post('/user-flight/cancel', validateUserId, cancelFlight);
+router.post('/user-flight/cancel', verifyToken, cancelFlight);
 
 module.exports = router;
