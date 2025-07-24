@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { supabase } from '../config/supabase';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -12,8 +13,17 @@ class FlightService {
       },
     });
 
-    this.api.interceptors.request.use((config) => {
+    this.api.interceptors.request.use(async (config) => {
       config.startTime = Date.now();
+      
+      // Add auth token for protected endpoints
+      if (this._needsAuth(config.url)) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          config.headers.Authorization = `Bearer ${session.access_token}`;
+        }
+      }
+      
       return config;
     });
 
@@ -24,6 +34,12 @@ class FlightService {
         return Promise.reject(error);
       }
     );
+  }
+
+  _needsAuth(url) {
+    // Endpoints that require authentication
+    const protectedEndpoints = ['/user-flight'];
+    return protectedEndpoints.some(endpoint => url.includes(endpoint));
   }
 
   async getAllFlights() {
@@ -39,29 +55,28 @@ class FlightService {
     return this._makeRequestWithColdStartMessage(() => this.api.get('/filter', { params }));
   }
 
-  async getUserFlight(userId) {
-    return this._makeRequestWithColdStartMessage(() => this.api.get('/user-flight', { params: { userId } }));
+  async getUserFlight() {
+    return this._makeRequestWithColdStartMessage(() => this.api.get('/user-flight'));
   }
 
-  async getUserFlightStatus(userId) {
-    return this._makeRequestWithColdStartMessage(() => this.api.get('/user-flight/status', { params: { userId } }));
+  async getUserFlightStatus() {
+    return this._makeRequestWithColdStartMessage(() => this.api.get('/user-flight/status'));
   }
 
-  async getRebookingOptions(userId) {
-    const response = await this.api.get('/user-flight/rebooking-options', { params: { userId } });
+  async getRebookingOptions() {
+    const response = await this.api.get('/user-flight/rebooking-options');
     return response.data;
   }
 
-  async bookFlight(userId, flightId) {
+  async bookFlight(flightId) {
     const response = await this.api.post('/user-flight/rebook', {
-      userId,
       newFlightId: flightId
     });
     return response.data;
   }
 
-  async cancelFlight(userId) {
-    const response = await this.api.post('/user-flight/cancel', { userId });
+  async cancelFlight() {
+    const response = await this.api.post('/user-flight/cancel', {});
     return response.data;
   }
 

@@ -1,16 +1,29 @@
-export const getOrCreateUserId = () => {
-  let userId = localStorage.getItem('userId');
-  if (!userId) {
-    userId = 'user_' + Math.random().toString(36).substring(2, 10);
-    localStorage.setItem('userId', userId);
-  }
-  return userId;
-};
+import { supabase } from '../config/supabase'
 
-export const clearUserId = () => {
-  localStorage.removeItem('userId');
-};
+export const getUserId = async () => {
+  const { data: { user } } = await supabase.auth.getUser()
+  return user?.id || null
+}
 
-export const getUserId = () => {
-  return localStorage.getItem('userId');
-};
+export const getCurrentUser = async () => {
+  const { data: { user } } = await supabase.auth.getUser()
+  return user
+}
+
+export const getSessionToken = async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.access_token || null
+}
+
+export const isAuthenticated = async () => {
+  const { data: { user } } = await supabase.auth.getUser()
+  return !!user
+}
+
+export const clearUserId = async () => {
+  await supabase.auth.signOut()
+}
+
+export const getOrCreateUserId = async () => {
+  return await getUserId()
+}

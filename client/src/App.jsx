@@ -4,10 +4,14 @@ import FlightList from './FlightList.jsx'
 import UserFlight from './UserFlight.jsx'
 import Toast from './components/Toast'
 import ErrorBoundary from './components/ErrorBoundary'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import AuthForm from './components/Auth'
+import LoadingSpinner from './components/LoadingSpinner'
 
-function App() {
+const AuthenticatedApp = () => {
   const [refreshUserFlight, setRefreshUserFlight] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+  const { user, signOut } = useAuth();
 
   const toast = {
     success: (message) => setToastMessage({ type: 'success', message }),
@@ -30,10 +34,23 @@ function App() {
     setToastMessage(prev => prev && prev.id === id ? null : prev);
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success('Signed out successfully');
+  };
+
   return (
     <ErrorBoundary>
       <div className="App">
-        <h1>Flight Rebooking Assistant</h1>
+        <div className="app-header">
+          <h1>Flight Rebooking Assistant</h1>
+          <div className="user-controls">
+            <span>Welcome, {user?.email}</span>
+            <button onClick={handleSignOut} className="sign-out-btn">
+              Sign Out
+            </button>
+          </div>
+        </div>
         <ErrorBoundary>
           <UserFlight refreshTrigger={refreshUserFlight} toast={toast} />
         </ErrorBoundary>
@@ -54,6 +71,42 @@ function App() {
         )}
       </div>
     </ErrorBoundary>
+  )
+}
+
+const AuthWrapper = () => {
+  const { user, loading } = useAuth();
+  const [authMode, setAuthMode] = useState('signin');
+
+  if (loading) {
+    return (
+      <div className="app-loading">
+        <LoadingSpinner />
+        <p>Loading application...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="app-auth">
+        <AuthForm 
+          mode={authMode} 
+          onToggleMode={setAuthMode}
+          onSuccess={() => window.location.reload()}
+        />
+      </div>
+    );
+  }
+
+  return <AuthenticatedApp />;
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <AuthWrapper />
+    </AuthProvider>
   )
 }
 

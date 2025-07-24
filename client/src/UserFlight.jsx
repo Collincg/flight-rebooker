@@ -2,10 +2,7 @@ import { useEffect, useState } from 'react';
 import FlightCard from './components/FlightCard';
 import LoadingSpinner from './components/LoadingSpinner';
 import flightService from './services/flightService';
-import { getOrCreateUserId } from './utils/userService';
 import './App.css';
-
-const userId = getOrCreateUserId();
 
 export default function UserFlight({ refreshTrigger, toast }) {
   const [flight, setFlight] = useState(null)
@@ -18,14 +15,14 @@ export default function UserFlight({ refreshTrigger, toast }) {
   useEffect(() => {
     const fetchUserFlight = async () => {
       try {
-        const data = await flightService.getUserFlight(userId);
+        const data = await flightService.getUserFlight();
         const bookedFlight = data.data?.bookedFlight || data.bookedFlight;
         setFlight(bookedFlight);
         setLoading(false);
         
         if (bookedFlight) {
           try {
-            const statusData = await flightService.getUserFlightStatus(userId);
+            const statusData = await flightService.getUserFlightStatus();
             setStatus(statusData.data?.status || statusData.status);
           } catch (err) {
             setStatus('unknown');
@@ -45,7 +42,7 @@ export default function UserFlight({ refreshTrigger, toast }) {
   const handleShowRebooking = async () => {
     try {
       setRebookingLoading(true);
-      const data = await flightService.getRebookingOptions(userId);
+      const data = await flightService.getRebookingOptions();
       setRebookingOptions(Array.isArray(data) ? data : data.data || []);
       setShowRebooking(true);
     } catch (err) {
@@ -65,7 +62,7 @@ export default function UserFlight({ refreshTrigger, toast }) {
 
   const handleRebook = async (flightId) => {
     try {
-      await flightService.bookFlight(userId, flightId);
+      await flightService.bookFlight(flightId);
       toast?.success('Flight rebooked successfully!');
       window.location.reload();
     } catch (err) {
@@ -76,7 +73,7 @@ export default function UserFlight({ refreshTrigger, toast }) {
 
   const handleCancel = async () => {
     try {
-      await flightService.cancelFlight(userId);
+      await flightService.cancelFlight();
       alert("Flight canceled!");
       setFlight(null);
       setShowRebooking(false);

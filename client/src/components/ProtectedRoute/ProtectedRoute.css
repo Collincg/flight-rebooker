@@ -1,0 +1,22 @@
+.protected-route-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  gap: 1rem;
+}
+
+.protected-route-loading p {
+  color: #718096;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.protected-route-auth {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  padding: 2rem 1rem;
+}
