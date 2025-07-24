@@ -9,8 +9,11 @@ const corsOptions = {
       'http://localhost:5173',
       'https://flight-rebooker.vercel.app'
     ];
+    
+    // Allow all Vercel preview deployments
+    const vercelPreviewPattern = /^https:\/\/flight-rebooker-.*\.vercel\.app$/;
 
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || vercelPreviewPattern.test(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
